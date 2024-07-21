@@ -1,6 +1,7 @@
 import React from 'react';
 import './index.css';
 import FollowerList from './components/FollowerList';
+import Home from './components/Home';
 
 function App() {
   return (
@@ -9,7 +10,8 @@ function App() {
         <h1 className="text-xl font-bold">Twitter Followers Twubric</h1>
       </header>
       <main className="p-4">
-        <FollowerList />
+        {/* <FollowerList /> */}
+        <Home />
       </main>
     </div>
   );
