@@ -1,54 +1,105 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { useForm } from "react-hook-form"
+import { HiOutlineRefresh } from "react-icons/hi";
 
 
 const Home = () => {
 
 
     const [alldata, setalldata] = useState([])
+    const [TempData, setTempData] = useState([])
+    const [RemovedData, setRemovedData] = useState([])
+    const [FilteredData, setFilteredData] = useState([])
 
 
     const {
         register,
         handleSubmit,
         watch,
+        setValue,
         formState: { errors },
     } = useForm();
+
+    const removeItem =(id)=>{
+        const updatedList = RemovedData.filter(e=>
+            
+            e.uid!==id
+        )
+        setRemovedData(updatedList)
+        // setFilteredData(updatedList)
+
+    }
 
 
     const getData = async () => {
         const res = await axios.get('/twubric.json')
-        setalldata(res.data)
+        // setalldata(res.data)
+        setTempData(res.data)
+        setRemovedData(res.data)
+        console.log("function called")
 
     }
     useEffect(() => {
         getData()
     }, [])
 
+    useEffect(() => {
+        if (watch("fromDate") && watch("toDate")) {
+          const formattedFromDate =
+            watch("fromDate") && new Date(watch("fromDate"));
+          const formattedToDate = watch("toDate") && new Date(watch("toDate"));
+          setRemovedData(
+            RemovedData.filter((value) => {
+                const joindate = new Date(value.join_date * 1000).toLocaleDateString()
+
+                
+              if (joindate) {
+                const parts = joindate.split(" ")[0].split("/");
+                const dateObject = new Date(+parts[2], +parts[1] - 1, +parts[0]);
+                console.log(dateObject)
+                if (
+                  dateObject >= formattedFromDate &&
+                  dateObject <= formattedToDate
+                ) {
+                  return true;
+                } else return false;
+              } else {
+                return false;
+              }
+            })
+          );
+        }
+      }, [watch("fromDate"), watch("toDate")]);
+
 
     return (
         <>
             <div className="flex space-x-2 mb-4">
                 <input
-                    {...register("from_date")}
+                    {...register("fromDate")}
                     type="date"
                     className="border p-2 rounded"
                 />
                 <input
-                    {...register("to_date")}
+                    {...register("toDate")}
                     type="date"
                     className="border p-2 rounded"
                 />
-                {/* <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                 <button
+                  onClick={() => {
+                    setValue("fromDate", null);
+                    setValue("toDate", null);
+                    getData();
+                  }}
+                  className="md:p-1.5 p-1 bg-gray-200 rounded-full "
                 >
-                    Filter
-                </button> */}
+                  <HiOutlineRefresh />
+                </button>
             </div>
             <div className=' grid grid-cols-3 space-y-5 space-x-4'>
                 {
-                    alldata.map((e) => {
+                    RemovedData.map((e) => {
 
                         const joindate = new Date(e.join_date * 1000).toLocaleDateString()
                         return (
@@ -69,7 +120,7 @@ const Home = () => {
 
                                 <button
                                     className="bg-red-500 text-white px-4 py-2 rounded mt-2"
-                                    onClick={() => onRemove(follower.uid)}
+                                    onClick={() => removeItem(e.uid)}
                                 >
                                     Remove
                                 </button>
